@@ -1,7 +1,32 @@
 import React, { useState, useRef } from "react";
 
+function levenshteinDistance(a, b) {
+  const m = a.length,
+    n = b.length;
+  const dp = Array.from({ length: m + 1 }, () => Array(n + 1).fill(0));
+  for (let i = 0; i <= m; i++) dp[i][0] = i;
+  for (let j = 0; j <= n; j++) dp[0][j] = j;
+  for (let i = 1; i <= m; i++) {
+    for (let j = 1; j <= n; j++) {
+      if (a[i - 1] === b[j - 1]) {
+        dp[i][j] = dp[i - 1][j - 1];
+      } else {
+        dp[i][j] =
+          1 +
+          Math.min(
+            dp[i - 1][j], // delete
+            dp[i][j - 1], // insert
+            dp[i - 1][j - 1] // replace
+          );
+      }
+    }
+  }
+  return dp[m][n];
+}
+
 function App() {
   const [text, setText] = useState("");
+  const [target, setTarget] = useState("");
   const undoStack = useRef([]);
   const redoStack = useRef([]);
 
@@ -23,6 +48,8 @@ function App() {
     setText(redoStack.current.pop());
   };
 
+  const minOps = levenshteinDistance(text, target);
+
   return (
     <div
       style={{
@@ -33,10 +60,7 @@ function App() {
         alignItems: "center",
         justifyContent: "center",
         fontFamily: "Segoe UI, Arial, sans-serif",
-        // minHeight: "100vh",
         minWidth: "100vw",
-        // width: "100vw",
-        // height: "100vh",
         boxSizing: "border-box",
         color: "#333",
         overflow: "hidden",
@@ -118,7 +142,7 @@ function App() {
         <textarea
           style={{
             width: "100%",
-            height: "260px",
+            height: "160px",
             fontSize: "17px",
             borderRadius: "10px",
             border: "1.5px solid #bdbdbd",
@@ -135,6 +159,30 @@ function App() {
           value={text}
           onChange={handleChange}
         />
+        <div style={{ margin: "18px 0 8px 0" }}>
+          <input
+            type="text"
+            style={{
+              width: "100%",
+              fontSize: "16px",
+              borderRadius: "8px",
+              border: "1.5px solid #bdbdbd",
+              padding: "10px",
+              boxSizing: "border-box",
+              background: "#f3f3fa",
+              color: "#22223b",
+              marginBottom: "6px",
+            }}
+            placeholder="Enter target string..."
+            value={target}
+            onChange={(e) => setTarget(e.target.value)}
+          />
+          <div
+            style={{ color: "#5f72bd", fontWeight: "bold", fontSize: "15px" }}
+          >
+            Minimum operations to convert: {minOps}
+          </div>
+        </div>
       </div>
     </div>
   );
